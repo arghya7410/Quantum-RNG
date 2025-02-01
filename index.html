@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuantumRNG - Modern Random Number Generator</title>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Animate.css -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --secondary: #6366f1;
+        --background: #0f172a;
+        --glass: rgba(255, 255, 255, 0.05);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        background: linear-gradient(45deg, var(--background), #1e293b);
+        color: white;
+        position: relative;
+        overflow-y: auto;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .glass-panel {
+        background: var(--glass);
+        backdrop-filter: blur(16px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        overflow: auto;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #94a3b8;
+      }
+
+      .range-inputs {
+        display: flex;
+        gap: 1rem;
+      }
+
+      input[type="number"],
+      input[type="range"] {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: white;
+        transition: all 0.3s ease;
+      }
+
+      input[type="number"]:focus,
+      input[type="range"]:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: var(--primary);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .generate-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+
+      .generate-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .results {
+        margin-top: 2rem;
+        text-align: center;
+      }
+
+      .number-display {
+        font-size: 4rem;
+        font-weight: 600;
+        margin: 2rem 0;
+        background: linear-gradient(to right, #fff, #e0e0e0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      }
+
+      .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 2rem;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .history-table th,
+      .history-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .history-table th {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .history-table td {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .floating-shapes div {
+        position: absolute;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        opacity: 0.1;
+        border-radius: 50%;
+        animation: float 20s infinite linear;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0) rotate(0deg);
+        }
+        100% {
+          transform: translateY(-100vh) rotate(360deg);
+        }
+      }
+
+      .export-btn,
+      .clear-history-btn {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .export-btn:hover,
+      .clear-history-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .stats-container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .stat-box {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        min-width: 100px;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: #94a3b8;
+      }
+
+      .results h3 {
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="floating-shapes">
+      <!-- JavaScript will add shapes dynamically -->
+    </div>
+
+    <div class="container">
+      <div class="glass-panel">
+        <div class="header">
+          <h1 class="animate__animated animate__fadeIn">QuantumRNG</h1>
+          <p>Advanced Random Number Generator</p>
+        </div>
+
+        <div class="controls">
+          <div class="input-group">
+            <label><i class="fas fa-arrows-alt-h"></i> Range</label>
+            <div class="range-inputs">
+              <input type="number" id="min" value="1" placeholder="Min" />
+              <input type="number" id="max" value="100" placeholder="Max" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label><i class="fas fa-hashtag"></i> Quantity</label>
+            <input type="number" id="quantity" value="1" min="1" max="100" />
+          </div>
+
+          <div class="input-group">
+            <label><i class="fas fa-sliders-h"></i> Precision</label>
+            <input type="range" id="precision" min="0" max="5" value="0" />
+            <span id="precision-value">0 decimals</span>
+          </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateNumbers()">
+          <i class="fas fa-magic"></i> Generate Numbers
+        </button>
+
+        <div class="results">
+          <div id="numberOutput" class="number-display">-</div>
+
+          <h3>Statistics</h3>
+          <div class="stats-container">
+            <div class="stat-box">
+              <div id="stat-min" class="stat-value">-</div>
+              <div class="stat-label">Minimum</div>
+            </div>
+            <div class="stat-box">
+              <div id="stat-max" class="stat-value">-</div>
+              <div class="stat-label">Maximum</div>
+            </div>
+            <div class="stat-box">
+              <div id="stat-avg" class="stat-value">-</div>
+              <div class="stat-label">Average</div>
+            </div>
+            <div class="stat-box">
+              <div id="stat-count" class="stat-value">-</div>
+              <div class="stat-label">Total Count</div>
+            </div>
+          </div>
+
+          <h3>Generation History</h3>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Numbers</th>
+                <th>Range</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <!-- History rows will be added here -->
+            </tbody>
+          </table>
+          <button class="export-btn" onclick="exportHistory()">
+            <i class="fas fa-download"></i> Export as CSV
+          </button>
+          <button class="clear-history-btn" onclick="clearHistory()">
+            <i class="fas fa-trash"></i> Clear History
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+      // Create floating shapes
+      for (let i = 0; i < 20; i++) {
+        const shape = document.createElement("div");
+        shape.style.width = shape.style.height = `${Math.random() * 50 + 20}px`;
+        shape.style.left = `${Math.random() * 100}%`;
+        shape.style.animationDelay = `${Math.random() * 20}s`;
+        document.querySelector(".floating-shapes").appendChild(shape);
+      }
+
+      let history = []; // Array to store history
+
+      function generateNumbers() {
+        const min = parseFloat(document.getElementById("min").value);
+        const max = parseFloat(document.getElementById("max").value);
+        const quantity = parseInt(document.getElementById("quantity").value);
+        const precision = parseInt(document.getElementById("precision").value);
+
+        let numbers = [];
+        for (let i = 0; i < quantity; i++) {
+          let number = Math.random() * (max - min) + min;
+          numbers.push(number.toFixed(precision));
+        }
+
+        // Display results
+        const output = document.getElementById("numberOutput");
+        output.textContent = numbers.join(", ");
+        output.classList.add("animate__animated", "animate__pulse");
+        output.addEventListener("animationend", () => {
+          output.classList.remove("animate__animated", "animate__pulse");
+        });
+
+        // Add to history array
+        const timestamp = moment().format("HH:mm:ss");
+        history.unshift({
+          time: timestamp,
+          numbers: numbers.join(", "),
+          range: `${min}-${max}`,
+        });
+
+        // Update history table
+        updateHistoryTable();
+        updateStatistics();
+
+        // Save to localStorage
+        saveHistory();
+      }
+
+      // Precision slider update
+      document
+        .getElementById("precision")
+        .addEventListener("input", function () {
+          document.getElementById("precision-value").textContent = `${
+            this.value
+          } decimal${this.value != 1 ? "s" : ""}`;
+        });
+
+      // Update history table
+      function updateHistoryTable() {
+        const historyBody = document.getElementById("historyBody");
+        historyBody.innerHTML = ""; // Clear existing table data
+
+        for (const entry of history) {
+          const newRow = document.createElement("tr");
+          newRow.innerHTML = `
+                    <td>${entry.time}</td>
+                    <td>${entry.numbers}</td>
+                    <td>${entry.range}</td>
+                `;
+          historyBody.appendChild(newRow);
+        }
+      }
+
+      function updateStatistics() {
+        if (history.length === 0) {
+          document.getElementById("stat-min").textContent = "-";
+          document.getElementById("stat-max").textContent = "-";
+          document.getElementById("stat-avg").textContent = "-";
+          document.getElementById("stat-count").textContent = "-";
+          return;
+        }
+
+        let allNumbers = history.flatMap((entry) =>
+          entry.numbers.split(", ").map(Number)
+        );
+        let min = Math.min(...allNumbers);
+        let max = Math.max(...allNumbers);
+        let avg =
+          allNumbers.reduce((sum, num) => sum + num, 0) / allNumbers.length;
+        let count = allNumbers.length;
+
+        document.getElementById("stat-min").textContent = min.toFixed(
+          parseInt(document.getElementById("precision").value)
+        );
+        document.getElementById("stat-max").textContent = max.toFixed(
+          parseInt(document.getElementById("precision").value)
+        );
+        document.getElementById("stat-avg").textContent = avg.toFixed(
+          parseInt(document.getElementById("precision").value)
+        );
+        document.getElementById("stat-count").textContent = count;
+      }
+
+      // History management
+      function saveHistory() {
+        localStorage.setItem("rngHistory", JSON.stringify(history));
+      }
+
+      function loadHistory() {
+        history = JSON.parse(localStorage.getItem("rngHistory")) || [];
+        updateHistoryTable();
+        updateStatistics();
+      }
+
+      function exportHistory() {
+        const csvContent =
+          "data:text/csv;charset=utf-8," +
+          "Time,Numbers,Range\n" +
+          history
+            .map(
+              (entry) => `${entry.time},` + `"${entry.numbers}",` + entry.range
+            )
+            .join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "rng_history.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link); // Clean up the link element
+      }
+
+      function clearHistory() {
+        if (!confirm("Are you sure you want to clear the history?")) {
+          return;
+        }
+
+        history = [];
+        localStorage.removeItem("rngHistory");
+        updateHistoryTable();
+        updateStatistics();
+      }
+
+      // Load history on page load
+      window.addEventListener("load", loadHistory);
+    </script>
+  </body>
+</html>
