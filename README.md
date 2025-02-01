@@ -57,9 +57,6 @@ A live demo of QuantumRNG is available at: [https://arghya7410.github.io/Quantum
 
 Contributions are welcome! If you'd like to improve QuantumRNG, feel free to submit a pull request.
 
-## License
-
-This project is licensed under the [MIT License](LICENSE)
 
 ## Author
 
